@@ -2,9 +2,6 @@ const fs = require('fs').promises;
 
 const readJson = (path) => fs.readFile(path)
   .then((text) => JSON.parse(text))
-  .catch((err) => {
-    // eslint-disable-next-line no-console
-    console.log(err);
-  });
+  .catch(() => ({ message: '500 Internal Server Error' }));
 
 module.exports = readJson;

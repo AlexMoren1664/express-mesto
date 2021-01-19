@@ -17,7 +17,7 @@
   "bugs": {
     "url": "https://github.com/AlexMoren1664/express-mesto/issues"
   },
-  "homepage": "https://github.com/AlexMoren1664/express-mesto#readme",
+  "homepage": "http://localhost:3000/",
   "devDependencies": {
     "eslint": "^7.17.0",
     "eslint-config-airbnb-base": "^14.2.1",
