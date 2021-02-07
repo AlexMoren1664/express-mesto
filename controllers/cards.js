@@ -1,3 +1,5 @@
+const { Error } = require('mongoose');
+const mongoose = require('mongoose');
 const Card = require('../models/card');
 
 const getCards = (req, res) => {
@@ -20,33 +22,58 @@ const createCard = (req, res) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Некорректные данные запроса' });
       }
-      return res.status(500).send({ message: err });
+      return res.status(500).send({ message: 'Ошибка на сервере' });
     });
 };
 
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(() => {
+      throw new Error('404');
+    })
     .then((card) => res.send({ data: card }))
-    .catch((err) => res.status(500).send({ message: err }));
+    .catch((err) => {
+      if (err.message === '404') {
+        return res.status(404).send({ message: 'Карточка не найдена' });
+      }
+      if (err instanceof mongoose.CastError) {
+        return res.status(400).send({ message: 'Запрос не был обработан, неверные данные' });
+      }
+      return res.status(500).send({ message: 'Ошибка на сервере' });
+    });
 };
 
 const likeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
-    .then((like) => {
-      res.send({ data: like });
+    .orFail(() => {
+      throw new Error('404');
     })
+    .then((like) => res.send({ data: like }))
     .catch((err) => {
-      res.status(500).send(err);
+      if (err.message === '404') {
+        return res.status(404).send({ message: 'Карточка не найдена' });
+      }
+      if (err instanceof mongoose.CastError) {
+        return res.status(400).send({ message: 'Запрос не был обработан, неверные данные' });
+      }
+      return res.status(500).send({ message: 'Ошибка на сервере' });
     });
 };
 
 const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
-    .then((like) => {
-      res.send({ data: like });
+    .orFail(() => {
+      throw new Error('404');
     })
+    .then((like) => res.send({ data: like }))
     .catch((err) => {
-      res.status(500).send({ message: err });
+      if (err.message === '404') {
+        return res.status(404).send({ message: 'Карточка не найдена' });
+      }
+      if (err instanceof mongoose.CastError) {
+        return res.status(400).send({ message: 'Запрос не был обработан, неверные данные' });
+      }
+      return res.status(500).send({ message: 'Ошибка на сервере' });
     });
 };
 

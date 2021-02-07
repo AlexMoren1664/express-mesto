@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/user');
 
 const getUsers = (req, res) => {
@@ -11,14 +12,18 @@ const getUsers = (req, res) => {
 };
 const getUser = (req, res) => {
   User.findById(req.params.id)
-    .then((users) => {
-      res.status(200).send(users);
+    .orFail(() => {
+      throw new Error('404');
     })
+    .then((users) => res.send({ data: users }))
     .catch((err) => {
-      if (!res.ok) {
+      if (err.message === '404') {
         return res.status(404).send({ message: 'Нет пользователя с таким id' });
       }
-      return res.status(500).send(err);
+      if (err instanceof mongoose.CastError) {
+        return res.status(400).send({ message: 'Запрос не был обработан, неверные данные' });
+      }
+      return res.status(500).send({ message: 'Ошибка на сервере' });
     });
 };
 
@@ -32,7 +37,7 @@ const createUser = (req, res) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Переданы некорректные данные запроса' });
       }
-      return res.status(500).send({ message: err });
+      return res.status(500).send({ message: 'Ошибка на сервере' });
     });
 };
 
@@ -48,7 +53,7 @@ const updateUserProfile = (req, res) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Переданы некорректные данные запроса' });
       }
-      return res.status(500).send({ message: err });
+      return res.status(500).send({ message: 'Ошибка на сервере' });
     });
 };
 
@@ -60,12 +65,11 @@ const updateUserAvatar = (req, res) => {
     upsert: true,
   })
     .then((user) => res.send({ data: user }))
-    //
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Переданы некорректные данные запроса' });
       }
-      return res.status(500).send({ message: err });
+      return res.status(500).send({ message: 'Ошибка на сервере' });
     });
 };
 module.exports = {
